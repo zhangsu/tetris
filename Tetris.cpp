@@ -1,6 +1,3 @@
-// Tetris.cpp : 定义应用程序的类行为。
-//
-
 #include "stdafx.h"
 #include "Tetris.h"
 #include "TetrisDlg.h"
@@ -9,12 +6,8 @@
 #define new DEBUG_NEW
 #endif
 
-// CTetrisApp 构造
-
 CTetrisApp::CTetrisApp()
 {
-	// TODO: 在此处添加构造代码，
-	// 将所有重要的初始化放置在 InitInstance 中
     MCI_OPEN_PARMS openParms;
     memset(&openParms, 0, sizeof(openParms));
 
@@ -54,12 +47,7 @@ CTetrisApp::~CTetrisApp()
     ::mciSendString(_T("close all"), NULL, 0, 0);
 }
 
-// 唯一的一个 CTetrisApp 对象
-
 CTetrisApp theApp;
-
-
-// CTetrisApp 初始化
 
 BOOL CTetrisApp::InitInstance()
 {
@@ -69,7 +57,5 @@ BOOL CTetrisApp::InitInstance()
 	m_pMainWnd = &dlg;
 	INT_PTR nResponse = dlg.DoModal();
 
-	// 由于对话框已关闭，所以将返回 FALSE 以便退出应用程序，
-	//  而不是启动应用程序的消息泵。
 	return FALSE;
 }

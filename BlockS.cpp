@@ -1,12 +1,8 @@
-// BlcokS.cpp : 实现文件
-//
-
 #include "StdAfx.h"
 #include "Tetris.h"
 #include "TetrisDlg.h"
 
 /*
-    S 形状的方块：
     case dir
     when 0
     . . . . . . . . . . . .

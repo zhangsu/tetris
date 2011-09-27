@@ -1,6 +1,3 @@
-// TetrisDlg.cpp : 实现文件
-//
-
 #include "stdafx.h"
 #include "Tetris.h"
 #include "TetrisDlg.h"
@@ -64,19 +61,13 @@ BEGIN_MESSAGE_MAP(CTetrisDlg, CDialog)
 	ON_COMMAND(ID_HELP_ABOUT, &CTetrisDlg::OnHelpAbout)
 END_MESSAGE_MAP()
 
-// CTetrisDlg 自定义函数
-
 void CTetrisDlg::Update()
 {
-    // 重绘背景（擦除所有已绘制的图形）
     RedrawBkgnd(CRect(0, 0, WIDTH + 320, HEIGHT));
-    // 绘制方块
     UpdateBlock();
     UpdateWindow();
-    // 绘制游戏结束画面
     if(m_gameParam & 0x04)
     {
-        // 获取游戏结束图片 DC
         CDC gameoverMemDC;
         gameoverMemDC.CreateCompatibleDC(&m_memDC);
         gameoverMemDC.SelectObject(m_gameover);
@@ -92,7 +83,6 @@ void CTetrisDlg::Update()
 
 void CTetrisDlg::AdjustFrame()
 {
-    // 通过客户端大小和边框调整游戏窗口尺寸
     CRect rect;
     rect.left = 0;
     rect.top = 0;
@@ -166,7 +156,6 @@ void CTetrisDlg::Play(MCIDEVICEID id)
 
 void CTetrisDlg::UpdateBlock()
 {
-    // 获取方块图片 DC
     CDC blockMemDC;
     blockMemDC.CreateCompatibleDC(&m_memDC);
     blockMemDC.SelectObject(m_block);
@@ -195,11 +184,9 @@ void CTetrisDlg::UpdateBlock()
 
 void CTetrisDlg::UpdateWindow()
 {
-    // 获取窗口背景图片 DC
     CDC wndMemDC;
     wndMemDC.CreateCompatibleDC(&m_memDC);
     wndMemDC.SelectObject(m_window);
-    // Alpha 参数
     BLENDFUNCTION bf;
     bf.BlendOp = AC_SRC_OVER;
     bf.BlendFlags = 0;
@@ -210,13 +197,10 @@ void CTetrisDlg::UpdateWindow()
 
     SetFontSize(30);
     CString str;
-    // 描绘下一个方块文字信息
     DrawText(360, 32, 600, 64, str = "NEXT TETROMINO:", DT_LEFT);
-    // 获取方块图片 DC
     CDC blockMemDC;
     blockMemDC.CreateCompatibleDC(&m_memDC);
     blockMemDC.SelectObject(m_block);
-    // 绘制下一个方块
     BYTE x = (m_nextColor - 1) << 5;
     switch((m_gameParam & 0xE0) >> 5)
     {
@@ -263,22 +247,17 @@ void CTetrisDlg::UpdateWindow()
         m_memDC.StretchBlt(494, 128, 32, 32, &blockMemDC, x, 0, 32, 32, SRCCOPY);
     }
     blockMemDC.DeleteDC();
-    // 描绘等级
     DrawText(360, 192, 600, 224, str = "LEVEL:", DT_LEFT);
     str.Format(_T("%d"), m_level + 1);
     DrawText(360, 192, 600, 224, str, DT_RIGHT);
-    // 描绘积分
     DrawText(360, 256, 600, 288, str = "SCORE:", DT_LEFT);
     str.Format(_T("%d"), m_score);
     DrawText(360, 256, 600, 288, str, DT_RIGHT);
-    // 描绘消除行数
     DrawText(360, 320, 600, 352, str = "LINES:", DT_LEFT);
     str.Format(_T("%d"), m_lines);
     DrawText(360, 320, 600, 352, str, DT_RIGHT);
-    // 描绘游戏选项快捷方式
     SetFontSize(m_mouseOver == 0x01 ? 36 : 30);
     DrawText(360, 384, 600, 416, str = "NEW", DT_CENTER);
-    // 禁止暂停、停止时用灰色描绘文字
     if(!(m_gameParam & 0x01) || (m_gameParam & 0x04))
     {
         SetFontSize(30);
@@ -288,7 +267,6 @@ void CTetrisDlg::UpdateWindow()
     else
     {
         SetFontSize(m_mouseOver == 0x02 ? 36 : 30);
-        // 暂停中则用红色描绘
         DrawText(400, 448, 560, 480, str = "PAUSE", DT_LEFT, m_gameParam & 0x02 ? 0x0000FF : 0xFFFFFF);
         SetFontSize(m_mouseOver == 0x04 ? 36 : 30);
         DrawText(400, 448, 560, 480, str = "STOP", DT_RIGHT, 0xFFFFFF);
@@ -304,9 +282,7 @@ void CTetrisDlg::NextRandomBlock()
 {
     UINT r;
     rand_s(&r);
-    // 清空最高 3 位
     m_gameParam &= 0x1F;
-    // 1-7的随机数左移五位，保存到 m_gameParam 的最高 3 位
     m_gameParam |= ((BYTE)((DOUBLE)r / ((__int64)UINT_MAX + 1) * 7) + 1) << 5;
     m_nextColor = NextRandomColor();
 }
@@ -320,7 +296,6 @@ BYTE CTetrisDlg::NextRandomColor()
 
 Block *CTetrisDlg::BlockFromIndex(BYTE i)
 {
-    // 播放出现 SE
     Play(theApp.m_se_apprID);
     switch(i >> 5)
     {
@@ -357,7 +332,6 @@ void CTetrisDlg::RemoveLine(BYTE row)
     BYTE *prevRow;
     BYTE *thisRow = m_board[row];
 
-    // 获取方块图片 DC
     CDC blockMemDC;
     blockMemDC.CreateCompatibleDC(&m_memDC);
     blockMemDC.SelectObject(m_block);
@@ -367,13 +341,11 @@ void CTetrisDlg::RemoveLine(BYTE row)
     bf.BlendFlags = 0;
     bf.AlphaFormat = AC_SRC_ALPHA;
 
-    // 播放消失 SE
     Play(theApp.m_se_dsprID);
 
     for(BYTE opacity = 220; opacity != 0; --opacity)
     {
         RedrawBkgnd(CRect(0, row << 5, WIDTH, (row + 1) << 5));
-        // 降低不透明度
         bf.SourceConstantAlpha = opacity;
         for(BYTE i = 0; i < COL; ++i)
         {
@@ -381,7 +353,6 @@ void CTetrisDlg::RemoveLine(BYTE row)
         }
         m_pDC->BitBlt(0, 0, WIDTH, HEIGHT, &m_memDC, 0, 0, SRCCOPY);
     }
-    // 每行向下移动
     for(CHAR i = row; i > 0; --i)
     {
         prevRow = m_board[i - 1];
@@ -391,14 +362,11 @@ void CTetrisDlg::RemoveLine(BYTE row)
             thisRow[j] = prevRow[j];
         }
     }
-    // 清空第一行
     for(BYTE i = 0; i < COL; ++i)
     {
         prevRow[i] = 0;
     }
-    // 释放使用了方块图片的 DC 让 Update() 使用
     blockMemDC.DeleteDC();
-    // 积分
     m_score += 100 + m_level * 50;
     ++m_lines;
     Update();
@@ -428,16 +396,11 @@ BOOL CTetrisDlg::IsGameOver(BYTE blockType)
 void CTetrisDlg::GameOver()
 {
     Play(theApp.m_me_gmvrID);
-    // 移除计时器
     KillTimer(555);
-    // 激活游戏结束标识
     m_gameParam |= 0x04;
-    // 禁止 Stop 和 Pause 菜单选项
     m_menu.EnableMenuItem(ID_GAME_STOP, MF_DISABLED | MF_GRAYED);
     m_menu.EnableMenuItem(ID_GAME_PAUSE, MF_DISABLED | MF_GRAYED);    
 }
-
-// CTetrisDlg 覆盖父类函数
 
 BOOL CTetrisDlg::PreTranslateMessage(MSG *pMsg)
 {
@@ -454,51 +417,39 @@ BOOL CTetrisDlg::PreTranslateMessage(MSG *pMsg)
     return CDialog::PreTranslateMessage(pMsg);
 }
 
-// CTetrisDlg 消息处理程序
-
 BOOL CTetrisDlg::OnInitDialog()
 {
 	CDialog::OnInitDialog();
 
-	// 设置此对话框的图标。当应用程序主窗口不是对话框时，框架将自动
-	//  执行此操作
-	SetIcon(m_hIcon, TRUE);			// 设置大图标
-	SetIcon(m_hIcon, FALSE);		// 设置小图标
-    // 设置此对话框的菜单
+	SetIcon(m_hIcon, TRUE);
+	SetIcon(m_hIcon, FALSE);
     m_menu.LoadMenu(IDR_MENU);
     SetMenu(&m_menu);
     m_menu.EnableMenuItem(ID_GAME_PAUSE, MF_DISABLED | MF_GRAYED);
     m_menu.EnableMenuItem(ID_GAME_STOP, MF_DISABLED | MF_GRAYED);
-    // 初始化客户区 DC、缓冲 DC
     m_pDC = new CClientDC(this);
     m_memDC.CreateCompatibleDC(m_pDC);
     m_memBmp.CreateCompatibleBitmap(m_pDC, WIDTH + 320, HEIGHT);
     m_memDC.SelectObject(m_memBmp);
     m_memDC.SetBkMode(TRANSPARENT);
     SetFontSize(30);
-    // 初始化窗口框架和数据
     AdjustFrame();
     Initialize();
 	m_menu.CheckMenuItem(ID_GAME_SOUND, MF_CHECKED);
 	m_menu.CheckMenuItem(ID_LEVEL_BEGINNER, MF_CHECKED);
 
 
-    return TRUE;  // 除非将焦点设置到控件，否则返回 TRUE
+    return TRUE;
 }
-
-// 如果向对话框添加最小化按钮，则需要下面的代码
-//  来绘制该图标。对于使用文档/视图模型的 MFC 应用程序，
-//  这将由框架自动完成。
 
 void CTetrisDlg::OnPaint()
 {
     Update();
 	if (IsIconic())
 	{
-	    CPaintDC dc(this); // 用于绘制的设备上下文
+	    CPaintDC dc(this);
 		SendMessage(WM_ICONERASEBKGND, reinterpret_cast<WPARAM>(dc.GetSafeHdc()), 0);
 
-		// 使图标在工作区矩形中居中
 		int cxIcon = GetSystemMetrics(SM_CXICON);
 		int cyIcon = GetSystemMetrics(SM_CYICON);
 		CRect rect;
@@ -506,7 +457,6 @@ void CTetrisDlg::OnPaint()
 		int x = (rect.Width() - cxIcon + 1) / 2;
 		int y = (rect.Height() - cyIcon + 1) / 2;
 
-		// 绘制图标
 		dc.DrawIcon(x, y, m_hIcon);
 	}
 	else
@@ -515,8 +465,6 @@ void CTetrisDlg::OnPaint()
 	}
 }
 
-//当用户拖动最小化窗口时系统调用此函数取得光标
-//显示。
 HCURSOR CTetrisDlg::OnQueryDragIcon()
 {
 	return static_cast<HCURSOR>(m_hIcon);
@@ -524,7 +472,6 @@ HCURSOR CTetrisDlg::OnQueryDragIcon()
 
 void CTetrisDlg::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
 {
-    // 菜单命令快捷键
     switch(nChar)
     {
     case VK_F1:
@@ -541,13 +488,11 @@ void CTetrisDlg::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
     case VK_F4:
         PostMessage(WM_COMMAND, ID_GAME_SOUND, 0L);
     }
-    // 游戏已经开始、不在暂停、游戏失败的情况下
     if((m_gameParam & 0x07) == 0x01)
     {
         switch(nChar)
         {
         case VK_UP:
-            // 判断第一次按下
             if(!(nFlags & 0x4000))
             {
                 if(m_pBlock->canTurn())
@@ -588,20 +533,16 @@ void CTetrisDlg::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
 
 void CTetrisDlg::OnLButtonDown(UINT nFlags, CPoint point)
 {
-    // 鼠标焦点
     if(m_mouseOver != 0x00)
     {
-        // 左键按下标记
         m_gameParam |= 0x10;
     }
 }
 
 void CTetrisDlg::OnLButtonUp(UINT nFlags, CPoint point)
 {
-    // 如果鼠标已按下
     if(m_gameParam & 0x10)
     {
-        // 鼠标焦点在“新游戏”选项上
         if(m_mouseOver == 0x01)
         {
             PostMessage(WM_COMMAND, ID_GAME_NEW);
@@ -628,7 +569,6 @@ void CTetrisDlg::OnLButtonUp(UINT nFlags, CPoint point)
 void CTetrisDlg::OnMouseMove(UINT nFlags, CPoint point)
 {
     CRect rect;
-    // 新游戏选项举矩形
     rect.SetRect(459, 384, 502, 413);
     if(m_mouseOver != 0x01 && ::PtInRect(&rect, point))
     {
@@ -643,7 +583,6 @@ void CTetrisDlg::OnMouseMove(UINT nFlags, CPoint point)
     }
     else
     {
-        // 暂停选项矩形
         rect.SetRect(400, 448, 459, 477);
         if((m_gameParam & 0x01) && !(m_gameParam & 0x04) && m_mouseOver != 0x02 && ::PtInRect(&rect, point))
         {
@@ -658,7 +597,6 @@ void CTetrisDlg::OnMouseMove(UINT nFlags, CPoint point)
         }
         else
         {
-            // 停止选项矩形
             rect.SetRect(512, 448, 560, 477);
             if((m_gameParam & 0x01) && !(m_gameParam & 0x04) && m_mouseOver != 0x04 && ::PtInRect(&rect, point))
             {
@@ -673,7 +611,6 @@ void CTetrisDlg::OnMouseMove(UINT nFlags, CPoint point)
             }
             else
             {
-                // 音效选项矩形
                 rect.SetRect(448, 512, 512, 541);
                 if(m_mouseOver != 0x08 && ::PtInRect(&rect, point))
                 {
@@ -688,7 +625,6 @@ void CTetrisDlg::OnMouseMove(UINT nFlags, CPoint point)
                 }
                 else
                 {
-                    // 退出选项矩形
                     rect.SetRect(460, 576, 500, 608);
                     if(m_mouseOver != 0x10 && ::PtInRect(&rect, point))
                     {
@@ -707,13 +643,11 @@ void CTetrisDlg::OnMouseMove(UINT nFlags, CPoint point)
     }
 }
 
-// 捕获 WM_GETDLGCODE 消息并让 WM_KEYDOWN 可以响应方向键
 UINT CTetrisDlg::OnGetDlgCode()
 {
     return DLGC_WANTARROWS | CDialog::OnGetDlgCode();
 }
 
-// 去掉客户端背景的擦除
 BOOL CTetrisDlg::OnEraseBkgnd(CDC* pDC)
 {
     return TRUE;
@@ -727,7 +661,6 @@ void CTetrisDlg::OnTimer(UINT_PTR nIDEvent)
     }
     else
     {
-        // 开始检查可清除的行
         for(CHAR i = ROW - 1; i >= 0; --i)
         {
             if(CheckLine(i))
@@ -736,22 +669,16 @@ void CTetrisDlg::OnTimer(UINT_PTR nIDEvent)
                 ++i;
             }
         }
-        // 移除动画显示期间的计时器、按键消息
         MSG msg;
-//        while(::PeekMessage(&msg, m_hWnd, WM_TIMER, WM_TIMER, PM_REMOVE));
-//        while(::PeekMessage(&msg, m_hWnd, WM_KEYDOWN, WM_KEYDOWN, PM_REMOVE));
         while(::PeekMessage(&msg, m_hWnd, 0, 0, PM_REMOVE));
-        // 检查是否游戏结束
         if(IsGameOver(m_gameParam & 0xE0))
         {
             GameOver();
         }
         else
         {
-            // 更换到下一个活动方块
             delete m_pBlock;
             m_pBlock = BlockFromIndex(m_gameParam & 0xE0);
-            // 生成再下一个随机方块
             NextRandomBlock();
             m_nextColor = NextRandomColor();
         }
@@ -766,14 +693,11 @@ void CTetrisDlg::OnGameNew()
     {
         Initialize();
     }
-    // 游戏开始并取消暂停、失败标记
     m_gameParam |= 0x01;
     m_gameParam &= ~0x06;
     m_menu.EnableMenuItem(ID_GAME_STOP, MF_ENABLED);
     m_menu.EnableMenuItem(ID_GAME_PAUSE, MF_ENABLED);
-    // 打开计时器
     SetTimer(555, 500 - m_level * 90, NULL);
-    // 生成随机方块
     NextRandomBlock();
     m_pBlock = BlockFromIndex(m_gameParam & 0xE0);
     NextRandomBlock();
@@ -800,7 +724,6 @@ void CTetrisDlg::OnGamePause()
 void CTetrisDlg::OnGameStop()
 {
     Play(theApp.m_se_slctID);
-    // 游戏停止（去掉最低、最高三位）
     m_gameParam &= ~0xE7;
     Initialize();
     Invalidate(FALSE);
