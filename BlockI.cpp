@@ -1,12 +1,8 @@
-// BlcokI.cpp : 实现文件
-//
-
 #include "StdAfx.h"
 #include "Tetris.h"
 #include "TetrisDlg.h"
 
 /*
-    I 形状的方块：
     case dir
     when 0
     . . . . . . . . . . . .
@@ -144,7 +140,6 @@ void BlockI::turn()
     show();
 }
 
-// 检查方块自身是否可以放在 row 行 col 列
 bool BlockI::passable(char row, char col)
 {
     switch(dir)
